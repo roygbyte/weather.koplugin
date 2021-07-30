@@ -14,10 +14,18 @@ local InputDialog = require("ui/widget/inputdialog")
 local LuaSettings = require("luasettings")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
+local ListView = require("ui/widget/listview")
 local WeatherApi = require("weatherapi")
 local logger = require("logger")
 local _ = require("gettext")
 
+local Screen = require("device").screen
+local FrameContainer = require("ui/widget/container/framecontainer")
+local Blitbuffer = require("ffi/blitbuffer")
+local TextWidget = require("ui/widget/textwidget")
+local Font = require("ui/font")
+
+local Composer = require("composer")
 local ffiutil = require("ffi/util")
 local T = ffiutil.template
 
@@ -26,7 +34,7 @@ local Weather = WidgetContainer:new{
     name = "weather",
     settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
     settings = nil,
-    default_postal_code = "T0L0B6"
+    default_postal_code = "T0L0B6",
     default_auth_token = "2eec368fb9a149dd8a4224549212507"
 }
 
@@ -90,14 +98,24 @@ function Weather:getSubMenuItems()
 	 },
       },
       {
-	 text = _("Get forecast"),
+	 text = _("Today's forecast"),
+	 keep_menu_open = true,
+	 callback = function()
+	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
+		  self:todaysForecast()
+	    end)
+	 end,
+      },
+      {
+	 text = _("Week forecast"),
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
 		  self:loadForecast()
 	    end)
 	 end,
-      }
+      },
+      
    }
    return sub_item_table
 end
@@ -108,13 +126,61 @@ function Weather:loadForecast()
    local api = WeatherApi:new{
       auth_token = self.auth_token
    }
-   logger.dbg("postal_code",self.postal_code)
-   local forecast = api:getForecast(self.postal_code)
+   local day = "today"
+   forecast = api:getForecast(3)
 
    UIManager:show(
+      ListView:new{
+	 height = Screen:scaleBySize(400),
+	 width = Screen:scaleBySize(200),
+	 page_update_cb = function(curr_page_num, total_pages)
+	    -- This callback function will be called whenever a page
+	    -- turn event is triggered. You can use it to update
+	    -- information on the parent widget.
+	 end,
+	 items = {
+	    FrameContainer:new{
+	       bordersize = 0,
+	       background = Blitbuffer.COLOR_WHITE,
+	       TextWidget:new{
+		  text = "foo",
+		  face = Font:getFace("cfont"),
+	       }
+	    },
+	    FrameContainer:new{
+	       bordersize = 0,
+	       background = Blitbuffer.COLOR_LIGHT_GRAY,
+	       TextWidget:new{
+		  text = "bar",
+		  face = Font:getFace("cfont"),
+	       }
+	    },
+	    -- You can add as many widgets as you want here...
+	 }
+      }
+   )
+end
+--
+--
+-- TODO: make this function a single day forecast,
+-- and have some way to indicate what day we want the weather
+-- possibly, we could pass an offset, so currentday + offset
+-- and then grab the corresponding result returned by our api result
+function Weather:todaysForecast()
+   local api = WeatherApi:new{
+      auth_token = self.auth_token
+   }   
+
+   local result = api:getForecast(1)
+
+   if result == false then return false end
+
+   local view_content = Composer:singleDayView(result)
+   
+   UIManager:show(
       KeyValuePage:new{
-	 title = _("Weather Forecast"),
-	 kv_pairs = forecast
+	 title = _("Today's Forecast"),
+	 kv_pairs = view_content
       }
    )
 
