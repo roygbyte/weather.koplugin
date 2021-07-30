@@ -59,58 +59,23 @@ end
 --
 -- @returns table of forecast
 --
-function WeatherApi:getForecast()
+function WeatherApi:getForecast(forecast_days)
    -- Construct the endpoint URL
    -- TODO: Put the postal code var in this method
    -- if it's not given, default to origx
-   local forecast_days = 5
    local url = string.format(
       "http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=no&alerts=no",
       self.auth_token,
       self.postal_code,
       forecast_days
-   )
+   )  
    -- Make the request
    local result = self:_makeRequest(url)
    -- Check to see if the result is empty
    if result == nil then return false end
-   -- Prepare an object to store data we will return to the view
-   local forecast_days = {}
-   -- Loop through the forecast days
-   for _, r in ipairs(result.forecast.forecastday) do
-      -- Collect the data      
-      local date = r.date
-      local condition = r.day.condition.text
-      local avg_temp = r.day.avgtemp_c
-      -- Add the data to the table we're returning
-      table.insert(
-	 forecast_days,
-	 {
-	    "Date", date
-	 }
-      )
-      -- Condition
-      table.insert(
-	 forecast_days,
-	 {
-	    "Condition", condition
-	 }
-      )
-      -- Average daily temperature
-      table.insert(
-	 forecast_days,
-	 {
-	    "Average temp.", avg_temp
-	 }
-      )
-      -- Add a line to divide the forecast
-      table.insert(
-	 forecast_days,
-	 "---"
-      )
-   end
-
-   return forecast_days
+   -- Return our result!
+   logger.dbg(result)
+   return result
 
 end
 
