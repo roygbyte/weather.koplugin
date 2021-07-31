@@ -1,3 +1,6 @@
+local logger = require('logger') 
+local _ = require('gettext')
+
 local Composer = {
 
 }
@@ -49,6 +52,26 @@ function Composer:singleDayView(data)
       
    end
 
+   return view_content
+end
+
+function Composer:hourlyView(data)
+   local view_content = {}
+
+   local hours = data.forecast.forecastday[1].hour
+   for i = 7, 20,1 do
+      -- Collect the data
+      local cell = hours[i].feelslike_c .. " | "
+      cell = cell .. hours[i].condition.text
+      -- Set the data
+      table.insert(
+	 view_content,
+	 {
+	    _(i .. ":00"), cell 
+	 }
+      )
+   end
+   
    return view_content
 end
 

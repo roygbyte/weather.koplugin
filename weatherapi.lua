@@ -7,8 +7,7 @@ local logger = require("logger")
 local json = require("json")
 
 local WeatherApi = {
-    auth_token = "2eec368fb9a149dd8a4224549212507",
-    postal_code = "E3B3R8"
+    auth_token = "2eec368fb9a149dd8a4224549212507"
 }
 --
 -- Create a new instance of the WeatherApi
@@ -59,14 +58,14 @@ end
 --
 -- @returns table of forecast
 --
-function WeatherApi:getForecast(forecast_days)
+function WeatherApi:getForecast(forecast_days, postal_code)
    -- Construct the endpoint URL
    -- TODO: Put the postal code var in this method
    -- if it's not given, default to origx
    local url = string.format(
       "http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=no&alerts=no",
       self.auth_token,
-      self.postal_code,
+      postal_code,
       forecast_days
    )  
    -- Make the request

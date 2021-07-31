@@ -79,11 +79,41 @@ function Weather:getSubMenuItems()
 	 sub_item_table = {
 	    {
 	       text_func = function()
-		  return T(_("Postal Code"), self.font_size)
+		  return T(_("Postal Code (%1)"), self.postal_code)
 	       end,
 	       keep_menu_open = true,
 	       callback = function(touchmenu_instance)
-		  
+		  local postal_code = self.postal_code
+		  local input
+		  input = InputDialog:new{
+		     title = _("Postal Code"),
+		     input = postal_code,
+		     input_hint = _("Format: " .. self.default_postal_code),
+		     input_type = "string",
+		     description = _(""),
+		     buttons = {
+			{
+			   {
+			      text = _("Cancel"),
+			      callback = function()
+				 UIManager:close(input)
+			      end,
+			   },
+			   {
+			      text = _("Save"),
+			      is_enter_default = true,
+			      callback = function()
+				 self.postal_code = input:getInputValue()
+				 UIManager:close(input)
+				 touchmenu_instance:updateItems()
+			      end,
+			   },
+			}
+		     },
+		  }
+		  UIManager:show(input)
+		  input:onShowKeyboard()
+
 	       end,
 	    },
 	    {
@@ -167,24 +197,47 @@ end
 -- possibly, we could pass an offset, so currentday + offset
 -- and then grab the corresponding result returned by our api result
 function Weather:todaysForecast()
+   self.kv = {}
+   -- Init the weather API
    local api = WeatherApi:new{
       auth_token = self.auth_token
-   }   
-
-   local result = api:getForecast(1)
-
+   }  
+   -- Fetch the forecast
+   local result = api:getForecast(1, self.postal_code)
    if result == false then return false end
-
+   -- Create the view content 
    local view_content = Composer:singleDayView(result)
-   
-   UIManager:show(
-      KeyValuePage:new{
-	 title = _("Today's Forecast"),
-	 kv_pairs = view_content
+   -- Add an hourly forecast button to forecast
+   table.insert(
+      view_content,
+      {
+	 _("Hourly Forecast"), "",
+	 callback = function()
+	    local kv = self.kv
+	    UIManager:close(self.kv)
+	    self.kv = KeyValuePage:new{
+	       title = _("Hourly forecast"),
+	       value_overflow_align = "right",
+	       kv_pairs = Composer:hourlyView(result),
+	       callback_return = function()
+		  UIManager:show(kv)
+		  self.kv = kv
+	       end
+	    }
+	    UIManager:show(self.kv)
+	 end
       }
    )
-
---    NetworkMgr:afterWifiAction()
+   -- Create the KV page 
+   self.kv = KeyValuePage:new{
+      title = _("Today's Forecast"),
+      return_button = true,
+      kv_pairs = view_content
+   }
+   -- Show it
+   UIManager:show(
+      self.kv
+   )
 end
 
 function Weather:onFlushSettings()
@@ -194,13 +247,6 @@ function Weather:onFlushSettings()
       self.settings:flush()
    end
    logger.dbg("postal code",self.postal_code)
-end
-
-function Weather:onHelloWorld()
-    local popup = InfoMessage:new{
-        text = _("Hello World"),
-    }
-    UIManager:show(popup)
 end
 
 return Weather
