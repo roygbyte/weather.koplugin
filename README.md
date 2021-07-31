@@ -33,18 +33,43 @@ TODO
 
 I know what you're thinking: "how the heck do I get in on this?" Honestly, it's easier than you think. Lua is a fun and foregiving language with [good learning resources](https://www.lua.org/pil/). Seriously, load up your e-reader with a [Lua language ePub](https://store.feistyduck.com/products/programming-in-lua-fourth-edition-ebook) and soak in the brilliance of this humble language. Then follow the steps below to hack away and help out this aspiring bit of coding history...
 
+Here's how my project directory looks:
+
+```
+$ ls /home/me/Development/KOReader/
+koreader
+weather.koplugin
+```
+
 ### Download KOReader, install dependencies 
 
 TODO
 
 ### Clone repository, create soft link between this plugin folder and KOReader's plugins folder 
 
-TODO
+```sh
+ln -s weather.koplugin koreader/plugins/weather.koplugin
+```
 
 ### Write code, check code, run emulator
 
-TODO
+Check the code with Luacheck
+```sh
+cd weather.koplugin
+luacheck *
+```
+
+Run the emulator
+```sh
+cd koreader
+./kodev run
+```
 
 ### Deploy to Kobo using SSH/SCP 
 
-TODO
+Enable the wifi connection on KOReader. Then, launch KOReader's SSH daemon (Settings > Network > SSH server). Set the port to 22 and "login without password".
+```sh
+scp -r weather.koplugin/ root@192.168.2.16:/mnt/onboard/.adds/koreader/plugins/weather.koplugin/
+```
+
+TODO: Create a script that doesn't transfer the git repo.
