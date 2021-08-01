@@ -39,7 +39,7 @@ local Weather = WidgetContainer:new{
 }
 
 function Weather:onDispatcherRegisterActions()
-    Dispatcher:registerAction("helloworld_action", {category="none", event="HelloWorld", title=_("Hello World"), filemanager=true,})
+   -- 
 end
 
 function Weather:init()
@@ -51,12 +51,13 @@ function Weather:loadSettings()
    if self.settings then
       return
    end
+   -- Load the default settings
    self.settings = LuaSettings:open(self.settings_file)
    self.postal_code = self.settings:readSetting("postal_code") or self.default_postal_code
    self.api_key = self.settings:readSetting("api_key") or self.default_api_key
 end
 --
---
+-- Add Weather to the device's menu
 --
 function Weather:addToMainMenu(menu_items)
     menu_items.weather = {
@@ -67,7 +68,9 @@ function Weather:addToMainMenu(menu_items)
     }
 end
 --
+-- Create and return the list of submenu items
 --
+-- return @array
 --
 function Weather:getSubMenuItems()
    self:loadSettings()
@@ -178,45 +181,13 @@ function Weather:getSubMenuItems()
    return sub_item_table
 end
 --
---
+-- This doesn't do anything yet.
 --
 function Weather:loadForecast()
    local api = WeatherApi:new{
       api_key = self.api_key
    }
-   local day = "today"
-   forecast = api:getForecast(3)
 
-   UIManager:show(
-      ListView:new{
-	 height = Screen:scaleBySize(400),
-	 width = Screen:scaleBySize(200),
-	 page_update_cb = function(curr_page_num, total_pages)
-	    -- This callback function will be called whenever a page
-	    -- turn event is triggered. You can use it to update
-	    -- information on the parent widget.
-	 end,
-	 items = {
-	    FrameContainer:new{
-	       bordersize = 0,
-	       background = Blitbuffer.COLOR_WHITE,
-	       TextWidget:new{
-		  text = "foo",
-		  face = Font:getFace("cfont"),
-	       }
-	    },
-	    FrameContainer:new{
-	       bordersize = 0,
-	       background = Blitbuffer.COLOR_LIGHT_GRAY,
-	       TextWidget:new{
-		  text = "bar",
-		  face = Font:getFace("cfont"),
-	       }
-	    },
-	    -- You can add as many widgets as you want here...
-	 }
-      }
-   )
 end
 --
 --
@@ -274,7 +245,6 @@ function Weather:onFlushSettings()
       self.settings:saveSetting("api_key", self.api_key)
       self.settings:flush()
    end
-   logger.dbg("postal code",self.postal_code)
 end
 
 return Weather
