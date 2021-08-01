@@ -21,37 +21,36 @@ function Composer:singleDayView(data)
       local moon_set = r.astro.moonset
       -- Set and order the data
       view_content =
-		   {
-		      {
-			 "Date", date
-		      },
-		      {
-			 "Condition", condition
-		      },
-		      {
-			 "High of:", max_c
-		      },
-		      {
-			 "Low of:", min_c
-		      },
-		      {
-			 "Average temp.", avg_temp_c .. " °C"
-		      },
-		      {
-			 "Moonrise", moon_rise
-		      },
-		      {
-			 "Moonset", moon_set
-		      },
-		      {
-			 "Moon phase", moon_phase
-		      },
-		      "---"
-		   }
-      
+	 {
+	    {
+	       "Date", date
+	    },
+	    {
+	       "Condition", condition
+	    },
+	    {
+	       "High of:", max_c
+	    },
+	    {
+	       "Low of:", min_c
+	    },
+	    {
+	       "Average temp.", avg_temp_c .. " °C"
+	    },
+	    {
+	       "Moonrise", moon_rise
+	    },
+	    {
+	       "Moonset", moon_set
+	    },
+	    {
+	       "Moon phase", moon_phase
+	    },
+	    "---"
+	 }      
       
    end
-
+   
    return view_content
 end
 
@@ -70,6 +69,51 @@ function Composer:hourlyView(data)
 	    _(i .. ":00"), cell 
 	 }
       )
+   end
+   
+   return view_content
+end
+
+--
+--
+--
+function Composer:weeklyView(data)
+   local view_content = {}
+
+   for _, r in ipairs(data.forecast.forecastday) do
+      local date = r.date
+      local condition = r.day.condition.text
+      local avg_temp_c = r.day.avgtemp_c
+      local max_c = r.day.maxtemp_c
+      local min_c = r.day.mintemp_c
+      
+      local content = {
+	 {
+	    date, condition
+	 },
+	 {
+	    "", avg_temp_c
+	 },
+	 {
+	    "", "High: " .. max_c .. ", Low: " .. min_c
+	 }
+      }
+
+
+      for key, value in pairs(content) do
+	 table.insert(
+	    view_content,
+	    {
+	       value[1], value[2]
+	    }
+	 )
+      end
+
+      table.insert(
+	 view_content,
+	 "---"
+      )     
+      
    end
    
    return view_content

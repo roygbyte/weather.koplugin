@@ -74,3 +74,8 @@ scp -r weather.koplugin/ root@192.168.2.16:/mnt/onboard/.adds/koreader/plugins/w
 ```
 
 TODO: Create a script that doesn't transfer the git repo.
+
+
+## TODOs
+
+TODO

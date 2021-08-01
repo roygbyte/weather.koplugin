@@ -168,11 +168,11 @@ function Weather:getSubMenuItems()
 	 end,
       },
       {
-	 text = _("Week forecast (TODO)"),
+	 text = _("Weekly forecast (TODO)"),
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
---		  self:loadForecast()
+		  self:weeklyForecast()
 	    end)
 	 end,
       },
@@ -183,10 +183,27 @@ end
 --
 -- This doesn't do anything yet.
 --
-function Weather:loadForecast()
+function Weather:weeklyForecast()
+   self.kv = {}
+
    local api = WeatherApi:new{
       api_key = self.api_key
    }
+   -- Fetch the forecast
+   local result = api:getForecast(3, self.postal_code)
+   if result == false then return false end
+   -- Create the view content
+   local view_content = Composer:weeklyView(result)
+
+   self.kv = KeyValuePage:new{
+      title = _("Weekly forecast"),
+      return_button = true,
+      kv_pairs = view_content
+   }
+
+   UIManager:show(
+      self.kv
+   )
 
 end
 --
