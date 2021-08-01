@@ -11,8 +11,8 @@ Have it your way. This plugin lets you set the forecast location by postal code.
 
 ### Screenshots
 
-![Today's Weather](https://user-images.githubusercontent.com/82218266/127771212-9e2a4a17-8029-4c5b-842f-86d030fd23b5.png)
-![Hourly Forecast](https://user-images.githubusercontent.com/82218266/127771213-c7be7b35-9f27-48db-ac5d-eef3392477d5.png)
+<img src="https://user-images.githubusercontent.com/82218266/127771213-c7be7b35-9f27-48db-ac5d-eef3392477d5.png" alt="Today's Forecast" width="300"/>
+<img src="https://user-images.githubusercontent.com/82218266/127771212-9e2a4a17-8029-4c5b-842f-86d030fd23b5.png" alt="Hourly Forecast" width="300"/>
 
 ### Compatibility
 
