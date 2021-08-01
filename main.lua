@@ -35,7 +35,7 @@ local Weather = WidgetContainer:new{
     settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
     settings = nil,
     default_postal_code = "T0L0B6",
-    default_auth_token = "2eec368fb9a149dd8a4224549212507"
+    default_api_key = "2eec368fb9a149dd8a4224549212507"
 }
 
 function Weather:onDispatcherRegisterActions()
@@ -53,7 +53,7 @@ function Weather:loadSettings()
    end
    self.settings = LuaSettings:open(self.settings_file)
    self.postal_code = self.settings:readSetting("postal_code") or self.default_postal_code
-   self.auth_key = self.settings:readSetting("auth_key") or self.default_auth_token
+   self.api_key = self.settings:readSetting("api_key") or self.default_api_key
 end
 --
 --
@@ -83,7 +83,7 @@ function Weather:getSubMenuItems()
 	       end,
 	       keep_menu_open = true,
 	       callback = function(touchmenu_instance)
-		  local postal_code = self.postal_code
+  		  local postal_code = self.postal_code
 		  local input
 		  input = InputDialog:new{
 		     title = _("Postal Code"),
@@ -118,11 +118,39 @@ function Weather:getSubMenuItems()
 	    },
 	    {
 	       text_func = function()
-		  return T(_("Auth Token"), self.auth_token)
+		  return T(_("Auth Token (%1)"), self.api_key)
 	       end,
 	       keep_menu_open = true,
 	       callback = function(touchmenu_instance)
-		  
+  		  local api_key = self.api_key
+		  local input
+		  input = InputDialog:new{
+		     title = _("Auth token"),
+		     input = api_key,
+		     input_type = "string",
+		     description = _("Get an auth token from WeatherAPI.com"),
+		     buttons = {
+			{
+			   {
+			      text = _("Cancel"),
+			      callback = function()
+				 UIManager:close(input)
+			      end,
+			   },
+			   {
+			      text = _("Save"),
+			      is_enter_default = true,
+			      callback = function()
+				 self.api_key = input:getInputValue()
+				 UIManager:close(input)
+				 touchmenu_instance:updateItems()
+			      end,
+			   },
+			}
+		     },
+		  }
+		  UIManager:show(input)
+		  input:onShowKeyboard()		 
 	       end,
 	    }
 	 },
@@ -137,11 +165,11 @@ function Weather:getSubMenuItems()
 	 end,
       },
       {
-	 text = _("Week forecast"),
+	 text = _("Week forecast (TODO)"),
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
-		  self:loadForecast()
+--		  self:loadForecast()
 	    end)
 	 end,
       },
@@ -154,7 +182,7 @@ end
 --
 function Weather:loadForecast()
    local api = WeatherApi:new{
-      auth_token = self.auth_token
+      api_key = self.api_key
    }
    local day = "today"
    forecast = api:getForecast(3)
@@ -200,7 +228,7 @@ function Weather:todaysForecast()
    self.kv = {}
    -- Init the weather API
    local api = WeatherApi:new{
-      auth_token = self.auth_token
+      api_key = self.api_key
    }  
    -- Fetch the forecast
    local result = api:getForecast(1, self.postal_code)
@@ -243,7 +271,7 @@ end
 function Weather:onFlushSettings()
    if self.settings then
       self.settings:saveSetting("postal_code", self.postal_code)
-      self.settings:saveSetting("auth_token", self.auth_token)
+      self.settings:saveSetting("api_key", self.api_key)
       self.settings:flush()
    end
    logger.dbg("postal code",self.postal_code)

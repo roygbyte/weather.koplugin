@@ -7,7 +7,7 @@ local logger = require("logger")
 local json = require("json")
 
 local WeatherApi = {
-    auth_token = "2eec368fb9a149dd8a4224549212507"
+    api_key = "2eec368fb9a149dd8a4224549212507"
 }
 --
 -- Create a new instance of the WeatherApi
@@ -64,7 +64,7 @@ function WeatherApi:getForecast(forecast_days, postal_code)
    -- if it's not given, default to origx
    local url = string.format(
       "http://api.weatherapi.com/v1/forecast.json?key=%s&q=%s&days=%s&aqi=no&alerts=no",
-      self.auth_token,
+      self.api_key,
       postal_code,
       forecast_days
    )  

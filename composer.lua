@@ -12,9 +12,9 @@ function Composer:singleDayView(data)
       -- Collect the data      
       local date = r.date
       local condition = r.day.condition.text
-      local avg_temp_c = r.day.avgtemp_c
-      local high_c = r.day.maxtemp_c
-      local min_c = r.day.mintemp_c
+      local avg_temp_c = r.day.avgtemp_c .. " °C"
+      local max_c = r.day.maxtemp_c .. " °C"
+      local min_c = r.day.mintemp_c .. " °C"
       local uv = r.day.uv
       local moon_phase = r.astro.moon_phase
       local moon_rise = r.astro.moonrise
@@ -29,13 +29,13 @@ function Composer:singleDayView(data)
 			 "Condition", condition
 		      },
 		      {
-			 "High of:", high_c  
+			 "High of:", max_c
 		      },
 		      {
-			 "Low of:", low_c
+			 "Low of:", min_c
 		      },
 		      {
-			 "Average temp.", avg_temp_c
+			 "Average temp.", avg_temp_c .. " °C"
 		      },
 		      {
 			 "Moonrise", moon_rise
@@ -61,8 +61,8 @@ function Composer:hourlyView(data)
    local hours = data.forecast.forecastday[1].hour
    for i = 7, 20,1 do
       -- Collect the data
-      local cell = hours[i].feelslike_c .. " | "
-      cell = cell .. hours[i].condition.text
+      local cell = hours[i+1].feelslike_c .. " °C | "
+      cell = cell .. hours[i+1].condition.text
       -- Set the data
       table.insert(
 	 view_content,
