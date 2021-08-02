@@ -5,55 +5,77 @@ local Composer = {
 
 }
 
-function Composer:singleDayView(data)
+--
+-- Takes data.current
+--
+-- @returns array
+--
+function Composer:currentForecast(data)
    local view_content = {}
 
-   for _, r in ipairs(data.forecast.forecastday) do
-      -- Collect the data      
-      local date = r.date
-      local condition = r.day.condition.text
-      local avg_temp_c = r.day.avgtemp_c .. " °C"
-      local max_c = r.day.maxtemp_c .. " °C"
-      local min_c = r.day.mintemp_c .. " °C"
-      local uv = r.day.uv
-      local moon_phase = r.astro.moon_phase
-      local moon_rise = r.astro.moonrise
-      local moon_set = r.astro.moonset
-      -- Set and order the data
-      view_content =
-	 {
-	    {
-	       "Date", date
-	    },
-	    {
-	       "Condition", condition
-	    },
-	    {
-	       "High of:", max_c
-	    },
-	    {
-	       "Low of:", min_c
-	    },
-	    {
-	       "Average temp.", avg_temp_c .. " °C"
-	    },
-	    {
-	       "Moonrise", moon_rise
-	    },
-	    {
-	       "Moonset", moon_set
-	    },
-	    {
-	       "Moon phase", moon_phase
-	    },
-	    "---"
-	 }      
-      
-   end
-   
+   view_content = {
+      {
+	 "Feels like: ", data.feelslike_c
+      },
+      {
+	 "Condition: ", data.condition.text
+      },
+      "---"
+   }
+
    return view_content
 end
-
+--
+-- Takes data.forecast.forecastday
+-- 
+function Composer:singleForecast(data)
+   local view_content = {}
+   local date = data.date
+   local condition = data.day.condition.text
+   local avg_temp_c = data.day.avgtemp_c .. " °C"
+   local max_c = data.day.maxtemp_c .. " °C"
+   local min_c = data.day.mintemp_c .. " °C"
+   local uv = data.day.uv
+   local moon_phase = data.astro.moon_phase
+   local moon_rise = data.astro.moonrise
+   local moon_set = data.astro.moonset
+   -- Set and order the data
+   view_content =
+      {
+	 {
+	    "Date", date
+	 },
+	 {
+	    "Condition", condition
+	 },
+	 "---",
+	 {
+	    "High of:", max_c
+	 },
+	 {
+	    "Low of:", min_c
+	 },
+	 {
+	    "Average temp.", avg_temp_c .. " °C"
+	 },
+	 "---",
+	 {
+	    "Moonrise", moon_rise
+	 },
+	 {
+	    "Moonset", moon_set
+	 },
+	 {
+	    "Moon phase", moon_phase
+	 }
+      }      
+   
+   return view_content
+   
+end
+---
+---
+---
 function Composer:hourlyView(data)
    local view_content = {}
 
@@ -73,7 +95,6 @@ function Composer:hourlyView(data)
    
    return view_content
 end
-
 --
 --
 --
@@ -96,27 +117,38 @@ function Composer:weeklyView(data)
 	 },
 	 {
 	    "", "High: " .. max_c .. ", Low: " .. min_c
-	 }
+	 },
+	 "---"
       }
 
-
-      for key, value in pairs(content) do
-	 table.insert(
-	    view_content,
-	    {
-	       value[1], value[2]
-	    }
-	 )
-      end
-
-      table.insert(
-	 view_content,
-	 "---"
-      )     
+      view_content = Composer:flattenArray(view_content, content)
       
    end
    
    return view_content
 end
+--
+--
+--
+function Composer:flattenArray(base_array, source_array)
+   for key, value in pairs(source_array) do
+      if value[2] == nil then
+	 table.insert(
+	    base_array,
+	    "---"
+	 )
+      else
+	 table.insert(
+	    base_array,
+	    {
+	       value[1], value[2]
+	    }
+	 )
+      end
+   end
+   return base_array
+end
+
+
 
 return Composer

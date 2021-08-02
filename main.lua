@@ -35,7 +35,8 @@ local Weather = WidgetContainer:new{
     settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
     settings = nil,
     default_postal_code = "T0L0B6",
-    default_api_key = "2eec368fb9a149dd8a4224549212507"
+    default_api_key = "2eec368fb9a149dd8a4224549212507",
+    kv = {}
 }
 
 function Weather:onDispatcherRegisterActions()
@@ -163,7 +164,14 @@ function Weather:getSubMenuItems()
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
-		  self:todaysForecast()
+		  -- Init the weather API
+		  local api = WeatherApi:new{
+		     api_key = self.api_key
+		  }  
+		  -- Fetch the forecast
+		  local result = api:getForecast(1, self.postal_code)
+		  if result == false then return false end
+		  self:todaysForecast(result)
 	    end)
 	 end,
       },
@@ -172,7 +180,14 @@ function Weather:getSubMenuItems()
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
-		  self:weeklyForecast()
+		  -- Init the weather API
+		  local api = WeatherApi:new{
+		     api_key = self.api_key
+		  }
+		  -- Fetch the forecast
+		  local result = api:getForecast(3, self.postal_code)
+		  if result == false then return false end
+		  self:weeklyForecast(result)
 	    end)
 	 end,
       },
@@ -183,18 +198,19 @@ end
 --
 -- This doesn't do anything yet.
 --
-function Weather:weeklyForecast()
+function Weather:weeklyForecast(data)
    self.kv = {}
 
-   local api = WeatherApi:new{
-      api_key = self.api_key
-   }
-   -- Fetch the forecast
-   local result = api:getForecast(3, self.postal_code)
-   if result == false then return false end
-   -- Create the view content
-   local view_content = Composer:weeklyView(result)
+   local view_content = {}
+   local vc_weekly = Composer:weeklyView(data)
 
+   view_content = Composer:flattenArray(view_content, vc_weekly)
+   
+--      function(cb_data)
+--	 UIManager:close(self.kv)
+--	 self:todaysForecast(cb_data)
+--    end
+   
    self.kv = KeyValuePage:new{
       title = _("Weekly forecast"),
       return_button = true,
@@ -212,29 +228,28 @@ end
 -- and have some way to indicate what day we want the weather
 -- possibly, we could pass an offset, so currentday + offset
 -- and then grab the corresponding result returned by our api result
-function Weather:todaysForecast()
+function Weather:todaysForecast(data)
    self.kv = {}
-   -- Init the weather API
-   local api = WeatherApi:new{
-      api_key = self.api_key
-   }  
-   -- Fetch the forecast
-   local result = api:getForecast(1, self.postal_code)
-   if result == false then return false end
-   -- Create the view content 
-   local view_content = Composer:singleDayView(result)
+   local view_content = {}
+
+   local vc_current = Composer:currentForecast(data.current)
+   local vc_forecast = Composer:singleForecast(data.forecast.forecastday[1])
+   
+   view_content = Composer:flattenArray(view_content, vc_current)
+   view_content = Composer:flattenArray(view_content, vc_forecast)
+
    -- Add an hourly forecast button to forecast
    table.insert(
       view_content,
       {
-	 _("Hourly Forecast"), "",
+	 _("Hourly forecast"), "",
 	 callback = function()
 	    local kv = self.kv
 	    UIManager:close(self.kv)
 	    self.kv = KeyValuePage:new{
 	       title = _("Hourly forecast"),
 	       value_overflow_align = "right",
-	       kv_pairs = Composer:hourlyView(result),
+	       kv_pairs = Composer:hourlyView(data),
 	       callback_return = function()
 		  UIManager:show(kv)
 		  self.kv = kv
@@ -244,6 +259,7 @@ function Weather:todaysForecast()
 	 end
       }
    )
+  
    -- Create the KV page 
    self.kv = KeyValuePage:new{
       title = _("Today's Forecast"),
@@ -254,6 +270,18 @@ function Weather:todaysForecast()
    UIManager:show(
       self.kv
    )
+end
+--
+-- Accepts a table of data.forecast.forecastDay
+--
+function Weather:futureForecast(data)
+   self.kv = {}
+   local view_content = {}
+
+   local vc_forecast = Composer:singleForecast(data)
+   view_content = Composer:flattenArray(view_content, vc_forecast)
+
+   
 end
 
 function Weather:onFlushSettings()
