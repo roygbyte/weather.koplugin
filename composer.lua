@@ -67,7 +67,8 @@ function Composer:singleForecast(data)
 	 },
 	 {
 	    "Moon phase", moon_phase
-	 }
+	 },
+	 "---"
       }      
    
    return view_content
