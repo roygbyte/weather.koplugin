@@ -156,6 +156,22 @@ function Weather:getSubMenuItems()
 		  UIManager:show(input)
 		  input:onShowKeyboard()		 
 	       end,
+	    },
+	    {
+	       text_func = function()
+		  return T(_("Temperature Scale (%1)"), self.temp_scale)
+	       end,
+	       keep_menu_open = true,
+	       callback = function(touchmenu_instance)		 
+	       end,
+	    },
+	    {
+	       text_func = function()
+		  return T(_("Clock type (%1)"), self.clock_type)
+	       end,
+	       keep_menu_open = true,
+	       callback = function(touchmenu_instance)		 
+	       end,
 	    }
 	 },
       },
