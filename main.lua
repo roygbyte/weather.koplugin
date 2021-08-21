@@ -211,7 +211,7 @@ function Weather:getSubMenuItems()
 		     end,
 		     keep_menu_open = true,
 		     callback = function()
-			self.temp_scale = "12"
+			self.clock_style = "12"
 		     end,
 		  },
 		  {
@@ -225,7 +225,7 @@ function Weather:getSubMenuItems()
 		     end,
 		     keep_menu_open = true,
 		     callback = function(touchmenu_instance)
-			self.temp_scale = "24"
+			self.clock_style = "24"
 		     end,
 		  }
 	       }
