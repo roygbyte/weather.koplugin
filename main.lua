@@ -357,14 +357,6 @@ function Weather:futureForecast(data)
    
 end
 
-
-function Weather:saveSettings()
-      self.settings:saveSetting("postal_code", self.postal_code)
-      self.settings:saveSetting("api_key", self.api_key)
-      self.settings:saveSetting("temp_scale", self.temp_scale)
-      self.settings:flush()
-end
-
 function Weather:onFlushSettings()
    if self.settings then
       self.settings:saveSetting("postal_code", self.postal_code)
