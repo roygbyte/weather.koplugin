@@ -315,7 +315,7 @@ function Weather:todaysForecast(data)
    table.insert(
       view_content,
       {
-	 _("Hourly forecast"), "",
+	 _("Hourly forecast"), "Click to view",
 	 callback = function()
 	    local kv = self.kv
 	    UIManager:close(self.kv)
