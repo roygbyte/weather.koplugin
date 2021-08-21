@@ -37,6 +37,7 @@ local Weather = WidgetContainer:new{
     default_postal_code = "T0L0B6",
     default_api_key = "2eec368fb9a149dd8a4224549212507",
     default_temp_scale = "C",
+    default_clock_style = "12",
     kv = {}
 }
 
@@ -58,6 +59,7 @@ function Weather:loadSettings()
    self.postal_code = self.settings:readSetting("postal_code") or self.default_postal_code
    self.api_key = self.settings:readSetting("api_key") or self.default_api_key
    self.temp_scale = self.settings:readSetting("temp_scale") or self.default_temp_scale
+   self.clock_style = self.settings:readSetting("clock_style") or self.default_clock_style
 end
 --
 -- Add Weather to the device's menu
@@ -196,12 +198,37 @@ function Weather:getSubMenuItems()
 	       }
 	    },
 	    {
-	       text_func = function()
-		  return T(_("Clock type (%1)"), self.clock_type)
-	       end,
-	       keep_menu_open = true,
-	       callback = function(touchmenu_instance)		 
-	       end,
+	       text = T(_("Clock style (%1)"), self.clock_style),
+	       sub_item_table = {
+		  {
+		     text = _("12 hour clock"),
+		     checked_func = function()
+			if(string.find(self.clock_style,"12")) then
+			   return true
+			else
+			   return false
+			end
+		     end,
+		     keep_menu_open = true,
+		     callback = function()
+			self.temp_scale = "12"
+		     end,
+		  },
+		  {
+		     text = _("24 hour clock"),
+		     checked_func = function()
+			if(string.find(self.clock_style,"24")) then
+			   return true
+			else
+			   return false
+			end
+		     end,
+		     keep_menu_open = true,
+		     callback = function(touchmenu_instance)
+			self.temp_scale = "24"
+		     end,
+		  }
+	       }
 	    }
 	 },
       },      
@@ -343,6 +370,7 @@ function Weather:onFlushSettings()
       self.settings:saveSetting("postal_code", self.postal_code)
       self.settings:saveSetting("api_key", self.api_key)
       self.settings:saveSetting("temp_scale", self.temp_scale)
+      self.settings:saveSetting("clock_style", self.clock_style)
       self.settings:flush()
    end
 end
