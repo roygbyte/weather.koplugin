@@ -66,7 +66,7 @@ function Composer:singleForecast(data)
    local moon_set = data.astro.moonset
    local sunrise = data.astro.sunrise
    local sunset = data.astro.sunset
-
+   
    if(string.find(self.temp_scale, "C")) then
       avg_temp = data.day.avgtemp_c .. " °C"
       max_temp = data.day.maxtemp_c .. " °C"
@@ -120,11 +120,11 @@ function Composer:singleForecast(data)
    
 end
 ---
----
+--- 
 ---
 function Composer:hourlyView(data, callback)
    local view_content = {}
-   local hourly_forecast = data.forecast.forecastday[1].hour
+   local hourly_forecast = data
 
    -- I'm starting the view at 7AM, because no reasonable person should be
    -- up before this time... Kidding! I'm starting at 7AM because *most*
@@ -249,15 +249,26 @@ end
 --
 --
 --
-function Composer:weeklyView(data)
+function Composer:weeklyView(data, callback)
    local view_content = {}
 
+   local index = 0
+   
    for _, r in ipairs(data.forecast.forecastday) do
       local date = r.date
       local condition = r.day.condition.text
       local avg_temp_c = r.day.avgtemp_c
       local max_c = r.day.maxtemp_c
       local min_c = r.day.mintemp_c
+
+      -- @todo: Figure out why os returns the wrong date!
+      -- local day = os.date("%A", r.date_epoch)
+
+      -- Add some extra nibbles to the variable that is
+      -- passed back to the callback
+      if index == 0 then
+	 r.current = data.current
+      end	       
       
       local content = {
 	 {
@@ -269,11 +280,21 @@ function Composer:weeklyView(data)
 	 {
 	    "", "High: " .. max_c .. ", Low: " .. min_c
 	 },
+	 {
+	    "Full forecast",
+	    "Click to view",
+	    callback = function()
+	       -- Prepare callback for hour view
+	       r.location = data.location
+	       callback(r)
+	    end
+	 },
 	 "---"
       }
-
-      view_content = Composer:flattenArray(view_content, content)
       
+      view_content = Composer:flattenArray(view_content, content)
+
+      index = index + 1
    end
    
    return view_content
@@ -284,7 +305,6 @@ end
 -- up the food chain, so to speak
 --
 function Composer:flattenArray(base_array, source_array)
-   logger.dbg("Flatten",source_array)
    for key, value in pairs(source_array) do
       if value[2] == nil then
 	 -- If the value is empty, then it's probably supposed to be a line
@@ -293,15 +313,23 @@ function Composer:flattenArray(base_array, source_array)
 	    "---"
 	 )
       else
-	 table.insert(
-	    base_array,
-	    {
-	       value[1], value[2]
-	    }
-	 )
+	 if value["callback"] then
+	    table.insert(
+	       base_array,
+	       {
+		  value[1], value[2], callback = value["callback"]
+	       }
+	    )
+	 else
+	    table.insert(
+	       base_array,
+	       {
+		  value[1], value[2]
+	       }
+	    )
+	 end
       end
    end
-   logger.dbg("Flattened", base_array)
    return base_array
 end
 

@@ -38,10 +38,7 @@ local Weather = WidgetContainer:new{
     default_api_key = "2eec368fb9a149dd8a4224549212507",
     default_temp_scale = "C",
     default_clock_style = "12",
-    composer = Composer:new{
-       temp_scale = "C",
-       clock_style = "12"
-    },
+    composer = nil,      
     kv = {}
 }
 
@@ -65,8 +62,10 @@ function Weather:loadSettings()
    self.temp_scale = self.settings:readSetting("temp_scale") or self.default_temp_scale
    self.clock_style = self.settings:readSetting("clock_style") or self.default_clock_style
    -- Pollinate the other objects that require settings
-   self.composer:setTempScale(self.temp_scale)
-   self.composer:setClockStyle(self.clock_style)
+   self.composer = Composer:new{
+      temp_scale = self.temp_scale,
+      clock_style = self.clock_style
+   }
 end
 --
 -- Add Weather to the device's menu
@@ -239,7 +238,7 @@ function Weather:getSubMenuItems()
 	    }
 	 },
       },      
-      {
+--[[      {
 	 text = _("Today's forecast"),
 	 keep_menu_open = true,
 	 callback = function()
@@ -251,12 +250,12 @@ function Weather:getSubMenuItems()
 		  -- Fetch the forecast
 		  local result = api:getForecast(1, self.postal_code)
 		  if result == false then return false end
-		  self:todaysForecast(result)
+		  self:forecastForDay(result)
 	    end)
 	 end,
-      },
+   },]]--
       {
-	 text = _("Weekly forecast (In progress)"),
+	 text = _("View weather forecast"),
 	 keep_menu_open = true,
 	 callback = function()
 	    NetworkMgr:turnOnWifiAndWaitForConnection(function()
@@ -280,16 +279,16 @@ end
 --
 function Weather:weeklyForecast(data)
    self.kv = {}
-
    local view_content = {}
-   local vc_weekly = self.composer:weeklyView(data)
-
-   view_content = self.composer:flattenArray(view_content, vc_weekly)
    
---      function(cb_data)
---	 UIManager:close(self.kv)
---	 self:todaysForecast(cb_data)
---    end
+   local vc_weekly = self.composer:weeklyView(
+      data,
+      function(day_data)
+	 self:forecastForDay(day_data)
+      end
+   )
+   
+   view_content = self.composer:flattenArray(view_content, vc_weekly)   
    
    self.kv = KeyValuePage:new{
       title = _("Weekly forecast"),
@@ -325,13 +324,65 @@ function Weather:todaysForecast(data)
       {
 	 _("Hourly forecast"), "Click to view",
 	 callback = function()
-	    self:hourlyForecast(data)	   
+	    self:hourlyForecast(data.forecast.forecastday[1].hour)	   
 	 end
       }
    ) 
    -- Create the KV page 
    self.kv = KeyValuePage:new{
       title = T(_("Today's forecast for %1"), location),
+      return_button = true,
+      kv_pairs = view_content
+   }
+   -- Show it
+   UIManager:show(
+      self.kv
+   )
+end
+
+--
+--
+function Weather:forecastForDay(data)
+   local kv = self.kv or {}
+   local view_content = {}
+
+   if kv[0] ~= nil then
+      UIManager:close(self.kv)
+   end
+   
+   local day
+
+   if data.forecast == nil then
+      day = os.date("%A", data.date_epoch)
+      local vc_forecast = self.composer:singleForecast(data)
+      logger.dbg("   ", data)
+      if (data.current ~= nil) then
+	 local vc_current = self.composer:currentForecast(data.current)
+	 view_content = self.composer:flattenArray(view_content, vc_current)
+      end
+      view_content = self.composer:flattenArray(view_content, vc_forecast)
+   else
+      day = "Today"
+      local vc_current = self.composer:currentForecast(data.current)
+      local vc_forecast = self.composer:singleForecast(data.forecast.forecastday[1])
+      local location = data.location.name      
+      view_content = self.composer:flattenArray(view_content, vc_current)
+      view_content = self.composer:flattenArray(view_content, vc_forecast)
+   end
+   
+   -- Add an hourly forecast button to forecast
+   table.insert(
+      view_content,
+      {
+	 _("Hourly forecast"), "Click to view",
+	 callback = function()
+	    self:hourlyForecast(data.hour)	   
+	 end
+      }
+   ) 
+   -- Create the KV page 
+   self.kv = KeyValuePage:new{
+      title = T(_("%1 forecast"), day),
       return_button = true,
       kv_pairs = view_content
    }
@@ -348,19 +399,9 @@ function Weather:hourlyForecast(data)
    local hourly_kv_pairs = self.composer:hourlyView(
       data,
       function(hour_data)
-	 logger.dbg("testing", hour_data)
 	 self:forecastForHour(hour_data)
       end
    )
-
-   -- Make each hourly entry clickable
-   for key, value in pairs(hourly_kv_pairs) do
-      if value[2] == nil then	
-	 -- Nothing goes here
-      else
-	 logger.dbg(value)
-      end
-   end
    
    self.kv = KeyValuePage:new{
       title = _("Hourly forecast"),
@@ -384,8 +425,8 @@ function Weather:forecastForHour(data)
    local forecast_kv_pairs = self.composer:forecastForHour(data)
 
    local date = os.date("*t", data.time_epoch)
-
    local hour
+
    if(string.find(self.clock_style,"12")) then
 	 if(date.hour <= 12) then
 	    hour = date.hour .. ":00 AM"
