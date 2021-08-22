@@ -266,7 +266,18 @@ function Weather:getSubMenuItems()
 		  -- Fetch the forecast
 		  local result = api:getForecast(3, self.postal_code)
 		  if result == false then return false end
-		  self:weeklyForecast(result)
+		  if result.error ~= nil then
+		     local Screen = require("device").screen
+		     local sample
+		     sample = InfoMessage:new{
+			text = _("Error: " ..result.error.message),
+			height = Screen:scaleBySize(400),
+			show_icon = true
+		     }
+		     UIManager:show(sample)
+		  else
+		     self:weeklyForecast(result)
+		  end
 	    end)
 	 end,
       },
@@ -275,7 +286,7 @@ function Weather:getSubMenuItems()
    return sub_item_table
 end
 --
--- This doesn't do anything yet.
+-- 
 --
 function Weather:weeklyForecast(data)
    self.kv = {}
