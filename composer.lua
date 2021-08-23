@@ -39,10 +39,10 @@ function Composer:currentForecast(data)
    
    view_content = {
       {
-	 "Feels like: ", feelslike
+	 "Currently feels like ", feelslike
       },
       {
-	 "Condition: ", condition
+	 "Current condition", condition
       },
       "---"
    }
@@ -81,20 +81,16 @@ function Composer:singleForecast(data)
    view_content =
       {
 	 {
-	    "Date", date
+	    "High of", max_temp
 	 },
 	 {
-	    "Condition", condition
-	 },
-	 "---",
-	 {
-	    "High of:", max_temp
-	 },
-	 {
-	    "Low of:", min_temp
+	    "Low of", min_temp
 	 },
 	 {
 	    "Average temp.", avg_temp
+	 },
+	 {
+	    "Condition", condition
 	 },
 	 "---",
 	 {
@@ -281,8 +277,8 @@ function Composer:weeklyView(data, callback)
 	    "", "High: " .. max_c .. ", Low: " .. min_c
 	 },
 	 {
-	    "Full forecast",
-	    "Click to view",
+	    "",
+	    "Click for full forecast",
 	    callback = function()
 	       -- Prepare callback for hour view
 	       r.location = data.location

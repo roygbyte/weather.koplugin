@@ -142,7 +142,7 @@ function Weather:getSubMenuItems()
 		     title = _("Auth token"),
 		     input = api_key,
 		     input_type = "string",
-		     description = _("Get an auth token from WeatherAPI.com"),
+		     description = _("An auth token can be obtained from WeatherAPI.com. Simply signup for an account and request a token."),
 		     buttons = {
 			{
 			   {
@@ -302,7 +302,7 @@ function Weather:weeklyForecast(data)
    view_content = self.composer:flattenArray(view_content, vc_weekly)   
    
    self.kv = KeyValuePage:new{
-      title = _("Weekly forecast"),
+      title = T(_("Weekly forecast for %1"), data.location.name),
       return_button = true,
       kv_pairs = view_content
    }
@@ -326,9 +326,9 @@ function Weather:forecastForDay(data)
    local day
 
    if data.forecast == nil then
-      day = os.date("%A", data.date_epoch)
+      day = os.date("%a", data.date_epoch)
       local vc_forecast = self.composer:singleForecast(data)
-      logger.dbg("   ", data)
+
       if (data.current ~= nil) then
 	 local vc_current = self.composer:currentForecast(data.current)
 	 view_content = self.composer:flattenArray(view_content, vc_current)
