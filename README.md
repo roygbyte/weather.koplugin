@@ -49,7 +49,8 @@ TODO
 ### Clone repository, create soft link between this plugin folder and KOReader's plugins folder 
 
 ```sh
-ln -s weather.koplugin koreader/plugins/weather.koplugin
+cd koreader/plugins
+ln -s ../../weather.koplugin weather.koplugin
 ```
 
 ### Write code, check code, run emulator
@@ -64,6 +65,12 @@ Run the emulator
 ```sh
 cd koreader
 ./kodev run
+```
+
+If the emulator doesn't build (and puts up a fuss like "[*] create symlink instead of copying files in development mode"), then clean it out.
+
+```sh
+./kodev clean
 ```
 
 ### Deploy to Kobo using SSH/SCP 
