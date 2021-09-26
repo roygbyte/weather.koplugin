@@ -25,7 +25,7 @@ end
 --
 -- @returns array
 --
-function Composer:currentForecast(data)
+function Composer:createCurrentForecast(data)
    local view_content = {}
 
    local condition = data.condition.text
@@ -52,7 +52,7 @@ end
 --
 -- Takes data.forecast.forecastday
 -- 
-function Composer:singleForecast(data)
+function Composer:createForecastFromDay(data)
    local view_content = {}   
    -- The values I'm interested in seeing
    local date = data.date
@@ -245,7 +245,7 @@ end
 --
 --
 --
-function Composer:weeklyView(data, callback)
+function Composer:createWeeklyForecast(data, callback)
    local view_content = {}
 
    local index = 0

@@ -16,17 +16,15 @@ local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local ListView = require("ui/widget/listview")
 local WeatherApi = require("weatherapi")
-local logger = require("logger")
-local _ = require("gettext")
-
 local Screen = require("device").screen
 local FrameContainer = require("ui/widget/container/framecontainer")
 local Blitbuffer = require("ffi/blitbuffer")
 local TextWidget = require("ui/widget/textwidget")
 local Font = require("ui/font")
-
 local Composer = require("composer")
+local logger = require("logger")
 local ffiutil = require("ffi/util")
+local _ = require("gettext")
 local T = ffiutil.template
 
 
@@ -292,7 +290,7 @@ function Weather:weeklyForecast(data)
    self.kv = {}
    local view_content = {}
    
-   local vc_weekly = self.composer:weeklyView(
+   local vc_weekly = self.composer:createWeeklyForecast(
       data,
       function(day_data)
          self:forecastForDay(day_data)
@@ -310,7 +308,6 @@ function Weather:weeklyForecast(data)
    UIManager:show(
       self.kv
    )
-
 end
 --
 --
@@ -330,14 +327,14 @@ function Weather:forecastForDay(data)
       local vc_forecast = self.composer:singleForecast(data)
 
       if (data.current ~= nil) then
-         local vc_current = self.composer:currentForecast(data.current)
+         local vc_current = self.composer:createCurrentForecast(data.current)
          view_content = self.composer:flattenArray(view_content, vc_current)
       end
       view_content = self.composer:flattenArray(view_content, vc_forecast)
    else
       day = "Today"
-      local vc_current = self.composer:currentForecast(data.current)
-      local vc_forecast = self.composer:singleForecast(data.forecast.forecastday[1])
+      local vc_current = self.composer:createCurrentForecast(data.current)
+      local vc_forecast = self.composer:createForecastForDay(data.forecast.forecastday[1])
       local location = data.location.name      
       view_content = self.composer:flattenArray(view_content, vc_current)
       view_content = self.composer:flattenArray(view_content, vc_forecast)
@@ -369,10 +366,10 @@ function Weather:hourlyForecast(data)
    local kv = self.kv
    UIManager:close(self.kv)
 
-   local hourly_kv_pairs = self.composer:hourlyView(
+   local hourly_kv_pairs = self.composer:createHourlyForecast(
       data,
       function(hour_data)
-         self:forecastForHour(hour_data)
+         self:createForecastForHour(hour_data)
       end
    )
    
@@ -391,11 +388,11 @@ end
 --
 --
 --
-function Weather:forecastForHour(data)
+function Weather:createForecastForHour(data)
    local kv = self.kv
    UIManager:close(self.kv)
 
-   local forecast_kv_pairs = self.composer:forecastForHour(data)
+   local forecast_kv_pairs = self.composer:createForecastForHour(data)
 
    local date = os.date("*t", data.time_epoch)
    local hour
@@ -422,6 +419,7 @@ function Weather:forecastForHour(data)
    
    UIManager:show(self.kv)
 end
+
 --
 -- Accepts a table of data.forecast.forecastDay
 --
@@ -429,7 +427,7 @@ function Weather:futureForecast(data)
    self.kv = {}
    local view_content = {}
 
-   local vc_forecast = self.composer:singleForecast(data)
+   local vc_forecast = self.composer:createForecastForDay(data)
    view_content = self.composer:flattenArray(view_content, vc_forecast)   
 end
 
