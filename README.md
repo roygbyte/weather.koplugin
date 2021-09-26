@@ -5,6 +5,13 @@ Did you say weather? Did you say e-reader? Did you say now? Say "welcome" to you
 
 With weather information provided by [WeatherAPI](https://weatherapi.com), this plugin is sure to give you great guidance on the best times to sit under a tree and read, or when to run home so you can avoid that pesky rain. 
 
+### Features
+- Forecast for current day
+- Forecast for next 2 days
+- Hourly forecast for current day
+- Celsius and Fahrenheit (except it's not yet working!)
+- 24- or 12-hour clock
+
 ### Customization
 
 Have it your way. This plugin lets you set the forecast location by postal code. Whoa!
@@ -75,7 +82,9 @@ If the emulator doesn't build (and puts up a fuss like "[*] create symlink inste
 
 ### Deploy to Kobo using SSH/SCP 
 
-Enable the wifi connection on KOReader. Then, launch KOReader's SSH daemon (Settings > Network > SSH server). Set the port to 22 and "login without password".
+Enable the wifi connection on KOReader. Then, launch KOReader's SSH daemon (Settings > Network > SSH server). Set the port to 22 and "login without password". Use SCP to transfer the plugin folder to your device.
+
+Note: Replace the local address below (e.g.: 192.168.2.16) with the one indicated by your device's SSH server.
 ```sh
 scp -r weather.koplugin/ root@192.168.2.16:/mnt/onboard/.adds/koreader/plugins/weather.koplugin/
 ```
