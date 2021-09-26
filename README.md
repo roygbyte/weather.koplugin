@@ -18,8 +18,10 @@ Have it your way. This plugin lets you set the forecast location by postal code.
 
 ### Screenshots
 
-<img src="https://user-images.githubusercontent.com/82218266/127771213-c7be7b35-9f27-48db-ac5d-eef3392477d5.png" alt="Today's Forecast" width="300"/>
-<img src="https://user-images.githubusercontent.com/82218266/127771212-9e2a4a17-8029-4c5b-842f-86d030fd23b5.png" alt="Hourly Forecast" width="300"/>
+<img src="https://user-images.githubusercontent.com/82218266/134824984-687ffe38-e9aa-491f-8c2c-7c055fc5d10e.png" width="300"/>
+<img src="https://user-images.githubusercontent.com/82218266/134824983-390021e9-30de-4f0a-a4ea-d95bcc68f6fa.png" width="300"/>
+<img src="https://user-images.githubusercontent.com/82218266/134824982-3e16e8da-fbf2-4d35-b6d5-33ece7d47d67.png" width="300"/>
+<img src="https://user-images.githubusercontent.com/82218266/134824980-32d1892b-7b24-45b5-86ba-ef9892fcacb5.png" width="300"/>
 
 ### Compatibility
 
@@ -27,11 +29,11 @@ Tested with the Kobo Libra H2O. Other devices unknown. Feel encouraged to try th
 
 ## Installation
 
-Easy as pie. Download the latest release and unzip it to your computer.
+Easy as pie. 
 
 ### Drag and Drop
 
-TODO
+Download the latest release and unzip it to your computer and then transfer the folder to your KOReader-powered device, placing it under `/.adds/koreader/plugins/weather.koplugin`.
 
 ### SSH/SCP
 
