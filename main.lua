@@ -36,12 +36,12 @@ local Weather = WidgetContainer:new{
     default_api_key = "2eec368fb9a149dd8a4224549212507",
     default_temp_scale = "C",
     default_clock_style = "12",
-    composer = nil,      
+    composer = nil,
     kv = {}
 }
 
 function Weather:onDispatcherRegisterActions()
-   -- 
+   --
 end
 
 function Weather:init()
@@ -70,6 +70,7 @@ end
 --
 function Weather:addToMainMenu(menu_items)
     menu_items.weather = {
+        sorting_hint = "tools",
         text = _("Weather"),
         sub_item_table_func= function()
            return self:getSubMenuItems()
@@ -162,7 +163,7 @@ function Weather:getSubMenuItems()
                      },
                   }
                   UIManager:show(input)
-                  input:onShowKeyboard()                 
+                  input:onShowKeyboard()
                end,
             },
             {
@@ -235,7 +236,7 @@ function Weather:getSubMenuItems()
                }
             }
          },
-      },      
+      },
 --[[      {
          text = _("Today's forecast"),
          keep_menu_open = true,
@@ -244,7 +245,7 @@ function Weather:getSubMenuItems()
                   -- Init the weather API
                   local api = WeatherApi:new{
                      api_key = self.api_key
-                  }  
+                  }
                   -- Fetch the forecast
                   local result = api:getForecast(1, self.postal_code)
                   if result == false then return false end
@@ -279,26 +280,26 @@ function Weather:getSubMenuItems()
             end)
          end,
       },
-      
+
    }
    return sub_item_table
 end
 --
--- 
+--
 --
 function Weather:weeklyForecast(data)
    self.kv = {}
    local view_content = {}
-   
+
    local vc_weekly = self.composer:createWeeklyForecast(
       data,
       function(day_data)
          self:forecastForDay(day_data)
       end
    )
-   
-   view_content = self.composer:flattenArray(view_content, vc_weekly)   
-   
+
+   view_content = self.composer:flattenArray(view_content, vc_weekly)
+
    self.kv = KeyValuePage:new{
       title = T(_("Weekly forecast for %1"), data.location.name),
       return_button = true,
@@ -319,12 +320,12 @@ function Weather:forecastForDay(data)
    if kv[0] ~= nil then
       UIManager:close(self.kv)
    end
-   
+
    local day
 
    if data.forecast == nil then
       day = os.date("%a", data.date_epoch)
-      local vc_forecast = self.composer:singleForecast(data)
+      local vc_forecast = self.composer:createForecastFromDay(data)
 
       if (data.current ~= nil) then
          local vc_current = self.composer:createCurrentForecast(data.current)
@@ -335,22 +336,22 @@ function Weather:forecastForDay(data)
       day = "Today"
       local vc_current = self.composer:createCurrentForecast(data.current)
       local vc_forecast = self.composer:createForecastForDay(data.forecast.forecastday[1])
-      local location = data.location.name      
+      local location = data.location.name
       view_content = self.composer:flattenArray(view_content, vc_current)
       view_content = self.composer:flattenArray(view_content, vc_forecast)
    end
-   
+
    -- Add an hourly forecast button to forecast
    table.insert(
       view_content,
       {
          _("Hourly forecast"), "Click to view",
          callback = function()
-            self:hourlyForecast(data.hour)         
+            self:hourlyForecast(data.hour)
          end
       }
-   ) 
-   -- Create the KV page 
+   )
+   -- Create the KV page
    self.kv = KeyValuePage:new{
       title = T(_("%1 forecast"), day),
       return_button = true,
@@ -366,13 +367,13 @@ function Weather:hourlyForecast(data)
    local kv = self.kv
    UIManager:close(self.kv)
 
-   local hourly_kv_pairs = self.composer:createHourlyForecast(
+   local hourly_kv_pairs = self.composer:hourlyView(
       data,
       function(hour_data)
          self:createForecastForHour(hour_data)
       end
    )
-   
+
    self.kv = KeyValuePage:new{
       title = _("Hourly forecast"),
       value_overflow_align = "right",
@@ -392,7 +393,7 @@ function Weather:createForecastForHour(data)
    local kv = self.kv
    UIManager:close(self.kv)
 
-   local forecast_kv_pairs = self.composer:createForecastForHour(data)
+   local forecast_kv_pairs = self.composer:forecastForHour(data)
 
    local date = os.date("*t", data.time_epoch)
    local hour
@@ -405,8 +406,8 @@ function Weather:createForecastForHour(data)
          end
    else
       hour = date.hour
-   end  
-   
+   end
+
    self.kv = KeyValuePage:new{
       title = T(_("Forecast for %1"), hour),
       value_overflow_align = "right",
@@ -416,7 +417,7 @@ function Weather:createForecastForHour(data)
          self.kv = kv
       end
    }
-   
+
    UIManager:show(self.kv)
 end
 
@@ -428,7 +429,7 @@ function Weather:futureForecast(data)
    local view_content = {}
 
    local vc_forecast = self.composer:createForecastForDay(data)
-   view_content = self.composer:flattenArray(view_content, vc_forecast)   
+   view_content = self.composer:flattenArray(view_content, vc_forecast)
 end
 
 function Weather:onFlushSettings()
