@@ -21,6 +21,28 @@ function Composer:setClockStyle(clock_style)
    self.clock_style = clock_style
 end
 --
+-- Convert 12-hour time format to 24-hour format
+-- e.g., "05:30 PM" -> "17:30"
+--
+function Composer:convertTo24Hour(time_12h)
+   if not time_12h or time_12h == "" then return time_12h end
+   
+   local time, period = time_12h:match("^(.+)%s+([AP]M)$")
+   if not time or not period then return time_12h end
+   
+   local hour, min = time:match("^(%d+):(%d+)$")
+   if not hour or not min then return time_12h end
+   
+   hour = tonumber(hour)
+   if period == "PM" and hour ~= 12 then
+      hour = hour + 12
+   elseif period == "AM" and hour == 12 then
+      hour = 0
+   end
+   
+   return string.format("%02d:%s", hour, min)
+end
+--
 -- Takes data.current
 --
 -- @returns array
@@ -62,10 +84,10 @@ function Composer:createForecastFromDay(data)
    local min_temp  
    local uv = data.day.uv
    local moon_phase = data.astro.moon_phase .. ", " .. data.astro.moon_illumination .. "%"
-   local moon_rise = data.astro.moonrise
-   local moon_set = data.astro.moonset
-   local sunrise = data.astro.sunrise
-   local sunset = data.astro.sunset
+   local moon_rise = self.clock_style == "12" and data.astro.moonrise or self:convertTo24Hour(data.astro.moonrise)
+   local moon_set = self.clock_style == "12" and data.astro.moonset or self:convertTo24Hour(data.astro.moonset)
+   local sunrise = self.clock_style == "12" and data.astro.sunrise or self:convertTo24Hour(data.astro.sunrise)
+   local sunset = self.clock_style == "12" and data.astro.sunset or self:convertTo24Hour(data.astro.sunset)
    
    if(string.find(self.temp_scale, "C")) then
       avg_temp = data.day.avgtemp_c .. " °C"
@@ -253,9 +275,9 @@ function Composer:createWeeklyForecast(data, callback)
    for _, r in ipairs(data.forecast.forecastday) do
       local date = r.date
       local condition = r.day.condition.text
-      local avg_temp_c = r.day.avgtemp_c
-      local max_c = r.day.maxtemp_c
-      local min_c = r.day.mintemp_c
+      local avg_temp = self.temp_scale == "C" and r.day.avgtemp_c .. " °C" or r.day.avgtemp_f .. " °F"
+      local max = self.temp_scale == "C" and r.day.maxtemp_c .. " °C" or r.day.maxtemp_f .. " °F"
+      local min = self.temp_scale == "C" and r.day.mintemp_c .. " °C" or r.day.mintemp_f .. " °F"
 
       -- @todo: Figure out why os returns the wrong date!
       -- local day = os.date("%A", r.date_epoch)
@@ -271,10 +293,10 @@ function Composer:createWeeklyForecast(data, callback)
             date, condition
          },
          {
-            "", avg_temp_c
+            "", avg_temp
          },
          {
-            "", "High: " .. max_c .. ", Low: " .. min_c
+            "", "High: " .. max .. ", Low: " .. min
          },
          {
             "",
