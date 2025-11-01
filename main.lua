@@ -11,7 +11,6 @@ local UIManager = require("ui/uimanager")
 local NetworkMgr = require("ui/network/manager")
 local InfoMessage = require("ui/widget/infomessage")
 local InputDialog = require("ui/widget/inputdialog")
-local LuaSettings = require("luasettings")
 local WidgetContainer = require("ui/widget/container/widgetcontainer")
 local KeyValuePage = require("ui/widget/keyvaluepage")
 local ListView = require("ui/widget/listview")
@@ -30,8 +29,6 @@ local T = ffiutil.template
 
 local Weather = WidgetContainer:new{
     name = "weather",
-    settings_file = DataStorage:getSettingsDir() .. "/weather.lua",
-    settings = nil,
     default_postal_code = "X0A0H0",
     default_api_key = "2eec368fb9a149dd8a4224549212507",
     default_temp_scale = "C",
@@ -50,15 +47,11 @@ function Weather:init()
 end
 
 function Weather:loadSettings()
-   if self.settings then
-      return
-   end
-   -- Load the default settings
-   self.settings = LuaSettings:open(self.settings_file)
-   self.postal_code = self.settings:readSetting("postal_code") or self.default_postal_code
-   self.api_key = self.settings:readSetting("api_key") or self.default_api_key
-   self.temp_scale = self.settings:readSetting("temp_scale") or self.default_temp_scale
-   self.clock_style = self.settings:readSetting("clock_style") or self.default_clock_style
+   -- Load from G_reader_settings
+   self.postal_code = G_reader_settings:readSetting("weather_postal_code") or self.default_postal_code
+   self.api_key = G_reader_settings:readSetting("weather_api_key") or self.default_api_key
+   self.temp_scale = G_reader_settings:readSetting("weather_temp_scale") or self.default_temp_scale
+   self.clock_style = G_reader_settings:readSetting("weather_clock_style") or self.default_clock_style
    -- Pollinate the other objects that require settings
    self.composer = Composer:new{
       temp_scale = self.temp_scale,
@@ -117,6 +110,7 @@ function Weather:getSubMenuItems()
                               is_enter_default = true,
                               callback = function()
                                  self.postal_code = input:getInputValue()
+                                 G_reader_settings:saveSetting("weather_postal_code", self.postal_code)
                                  UIManager:close(input)
                                  touchmenu_instance:updateItems()
                               end,
@@ -155,6 +149,7 @@ function Weather:getSubMenuItems()
                               is_enter_default = true,
                               callback = function()
                                  self.api_key = input:getInputValue()
+                                 G_reader_settings:saveSetting("weather_api_key", self.api_key)
                                  UIManager:close(input)
                                  touchmenu_instance:updateItems()
                               end,
@@ -184,6 +179,7 @@ function Weather:getSubMenuItems()
                      keep_menu_open = true,
                      callback = function()
                         self.temp_scale = "C"
+                        G_reader_settings:saveSetting("weather_temp_scale", self.temp_scale)
                      end,
                   },
                   {
@@ -198,6 +194,8 @@ function Weather:getSubMenuItems()
                      keep_menu_open = true,
                      callback = function(touchmenu_instance)
                         self.temp_scale = "F"
+                        G_reader_settings:saveSetting("weather_temp_scale", self.temp_scale)
+                        self.composer:setTempScale(self.temp_scale)
                      end,
                   }
                }
@@ -217,6 +215,8 @@ function Weather:getSubMenuItems()
                      keep_menu_open = true,
                      callback = function()
                         self.clock_style = "12"
+                        G_reader_settings:saveSetting("weather_clock_style", self.clock_style)
+                        self.composer:setClockStyle(self.clock_style)
                      end,
                   },
                   {
@@ -231,6 +231,8 @@ function Weather:getSubMenuItems()
                      keep_menu_open = true,
                      callback = function(touchmenu_instance)
                         self.clock_style = "24"
+                        G_reader_settings:saveSetting("weather_clock_style", self.clock_style)
+                        self.composer:setClockStyle(self.clock_style)
                      end,
                   }
                }
@@ -430,16 +432,6 @@ function Weather:futureForecast(data)
 
    local vc_forecast = self.composer:createForecastForDay(data)
    view_content = self.composer:flattenArray(view_content, vc_forecast)
-end
-
-function Weather:onFlushSettings()
-   if self.settings then
-      self.settings:saveSetting("postal_code", self.postal_code)
-      self.settings:saveSetting("api_key", self.api_key)
-      self.settings:saveSetting("temp_scale", self.temp_scale)
-      self.settings:saveSetting("clock_style", self.clock_style)
-      self.settings:flush()
-   end
 end
 
 return Weather
