@@ -162,10 +162,9 @@ function Weather:getSubMenuItems()
                end,
             },
             {
-               -- There is a bug here. After the callback fires, and the user leaves
-               -- the sub_item_table, the parent menu doesn't reflect the updated setting
-               -- Try it... you'll see :(
-               text = T(_("Temperature Scale (%1)"), self.temp_scale),
+               text_func = function()
+                  return T(_("Temperature Scale (%1)"), self.temp_scale)
+               end,
                sub_item_table = {
                   {
                      text = _("Celsius"),
@@ -177,9 +176,11 @@ function Weather:getSubMenuItems()
                         end
                      end,
                      keep_menu_open = true,
-                     callback = function()
+                     callback = function(touchmenu_instance)
                         self.temp_scale = "C"
                         G_reader_settings:saveSetting("weather_temp_scale", self.temp_scale)
+                        self.composer:setTempScale(self.temp_scale)
+                        touchmenu_instance:updateItems()
                      end,
                   },
                   {
@@ -196,12 +197,15 @@ function Weather:getSubMenuItems()
                         self.temp_scale = "F"
                         G_reader_settings:saveSetting("weather_temp_scale", self.temp_scale)
                         self.composer:setTempScale(self.temp_scale)
+                        touchmenu_instance:updateItems()
                      end,
                   }
                }
             },
             {
-               text = T(_("Clock style (%1)"), self.clock_style),
+               text_func = function()
+                  return T(_("Clock style (%1)"), self.clock_style)
+               end,
                sub_item_table = {
                   {
                      text = _("12 hour clock"),
@@ -213,10 +217,11 @@ function Weather:getSubMenuItems()
                         end
                      end,
                      keep_menu_open = true,
-                     callback = function()
+                     callback = function(touchmenu_instance)
                         self.clock_style = "12"
                         G_reader_settings:saveSetting("weather_clock_style", self.clock_style)
                         self.composer:setClockStyle(self.clock_style)
+                        touchmenu_instance:updateItems()
                      end,
                   },
                   {
@@ -233,6 +238,7 @@ function Weather:getSubMenuItems()
                         self.clock_style = "24"
                         G_reader_settings:saveSetting("weather_clock_style", self.clock_style)
                         self.composer:setClockStyle(self.clock_style)
+                        touchmenu_instance:updateItems()
                      end,
                   }
                }
